@@ -19,7 +19,6 @@ print("Requirements : ( python version > 3.0 ) and ( 'schedule','pyautogui' pack
 print('You can exit this program using ( Ctrl+c ) at any time')
 
 print('\n###############################################################################################')
-
 meet_id = input('Enter Meeting ID: ')
 password = input('Enter Meeting password: ')
 meet_time = input(('Enter everyday meeting time in 24hour format (eg: "15:30" for 3:30pm): '))
@@ -38,26 +37,35 @@ def zoomClass():
     
     time.sleep(0.3)
 
-    pyautogui.press('win',interval=0.5)
+    # open Zoom app using spotlight
+    pyautogui.hotkey('command', 'space')
     pyautogui.write('zoom')
-    pyautogui.press('enter',interval=0.5)
-
+    pyautogui.hotkey('enter',interval=0.5)
     time.sleep(10)
 
-    x,y = pyautogui.locateCenterOnScreen('joinIMG.png')
+    # locate and click 'Join' button
+    #x,y = pyautogui.locateCenterOnScreen('joinIMG.png')
+    x,y = pyautogui.locateCenterOnScreen('joinIMG.png', confidence = 0.9)
     """
-    # x,y = pyautogui.locateCenterOnScreen('joinIMG.png', confidence = 0.9)
-    # Uncomment ln 49 and comment ln 47 
-    # if you get an 'TypeError: cannot unpack non-iterable NoneType object' error
+    # Use ln 48 if ln 47 gives 'TypeError: cannot unpack non-iterable NoneType object' error
+    # To use the confidence parameter in ln 48, pip install opencv_python
     """
-    pyautogui.click(x,y)
 
+    """
+    # coordinates must be divided by 2 to click correct spot as MacBook Pros
+    # and MacBook Airs 2018 & later have retina display
+    # https://stackoverflow.com/questions/43606520/pyautogui-locate-command-returning-incorrect-coordinates-for-image-recognition
+    """
+    pyautogui.moveTo(x/2,y/2, duration = 1)    # move mouse to the window
+    pyautogui.dragTo(x/2,y/2, button = 'left')    # focus the window
+    pyautogui.click(x/2,y/2, interval = 1, button = 'left') 
 
-    pyautogui.press('enter',interval=5)
     pyautogui.write(meet_id)
+    print('Entering meeting ID')
     pyautogui.press('enter',interval=5)
 
     pyautogui.write(password)
+    print('Entering passcode')
     pyautogui.press('enter',interval = 10)
 
     print("Session has started and will continue for %s minutes"%total_meet)
@@ -68,10 +76,10 @@ def zoomClass():
     time.sleep(total_meet) 
 
     # closing Zoom
-    pyautogui.hotkey('alt','f4')
-    time.sleep(0.5)
-    pyautogui.hotkey('alt','f4')
-
+    print('Meeting over! Exiting Zoom')
+    pyautogui.hotkey('command', 'q')
+    time.sleep(1)
+    pyautogui.hotkey('command', 'q')
 
 # Every day at whatever time the user has entered.
 schedule.every().day.at("%s"%meet_time).do(zoomClass)
